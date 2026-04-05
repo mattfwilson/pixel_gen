@@ -107,32 +107,36 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
 
       <div className="flex gap-4">
         {showComparison && originalImage && (
-          <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 flex-1">
+          <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 flex-1 overflow-auto">
             <p className="text-xs text-gray-600 mb-2 text-center">Original</p>
-            <img
-              src={originalImage}
-              alt="Original"
-              className="max-w-full h-auto"
-              style={{
-                imageRendering: 'auto',
-                transform: `scale(${zoom})`,
-                transformOrigin: 'top left',
-              }}
-            />
+            <div className="overflow-auto max-h-96">
+              <img
+                src={originalImage}
+                alt="Original"
+                className="max-w-full h-auto"
+                style={{
+                  imageRendering: 'auto',
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'top left',
+                }}
+              />
+            </div>
           </div>
         )}
         
         <div className={`border border-gray-300 rounded-lg p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
           {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
-          <canvas
-            ref={canvasRef}
-            className="max-w-full h-auto"
-            style={{
-              imageRendering: 'pixelated',
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top left',
-            }}
-          />
+          <div className="overflow-auto max-h-96">
+            <canvas
+              ref={canvasRef}
+              className="max-w-full h-auto"
+              style={{
+                imageRendering: 'pixelated',
+                transform: `scale(${zoom})`,
+                transformOrigin: 'top left',
+              }}
+            />
+          </div>
         </div>
       </div>
 
