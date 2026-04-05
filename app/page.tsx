@@ -450,7 +450,6 @@ Tips:
                 />
               </div>
             )}
-          </div>
 
             {/* Export section - appears when image is loaded */}
             {pixelGrid && (
