@@ -306,7 +306,7 @@ Tips:
                   <button
                     onClick={() => handleSizeModeChange('scale')}
                     disabled={processing || !uploadedFile}
-                    className={`flex-1 px-3 py-2 text-xs rounded transition-colors ${
+                    className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
                       sizeMode === 'scale'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-200 hover:bg-gray-300'
@@ -317,7 +317,7 @@ Tips:
                   <button
                     onClick={() => handleSizeModeChange('exact')}
                     disabled={processing || !uploadedFile}
-                    className={`flex-1 px-3 py-2 text-xs rounded transition-colors ${
+                    className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
                       sizeMode === 'exact'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-200 hover:bg-gray-300'
