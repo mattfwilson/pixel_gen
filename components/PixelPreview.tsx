@@ -126,7 +126,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
         
         <div className={`border border-gray-300 rounded-lg p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
           {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
-          <div className="overflow-auto max-h-96">
+          <div className="overflow-auto" style={{ maxHeight: showComparison ? '500px' : '700px' }}>
             <canvas
               ref={canvasRef}
               className="max-w-full h-auto"
