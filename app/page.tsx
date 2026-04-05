@@ -252,9 +252,9 @@ Tips:
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Upload and Preview */}
-          <div className="flex flex-col gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Column: Upload and Preview - 75% width */}
+          <div className="lg:col-span-3 flex flex-col gap-8">
             {/* Combined Upload and Preview Container */}
             <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
               {/* Upload section - always visible */}
@@ -292,8 +292,8 @@ Tips:
             )}
           </div>
 
-          {/* Right Column: Controls and Export */}
-          <div className="flex flex-col gap-8">
+          {/* Right Column: Controls and Export - 25% width */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
 
             <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
               <div>
