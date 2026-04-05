@@ -67,8 +67,8 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Preview</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h3 className="text-base md:text-lg font-semibold">Preview</h3>
         <div className="flex gap-2">
           <button
             onClick={() => setShowGrid(!showGrid)}
@@ -105,9 +105,9 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
         <span className="text-sm text-gray-600">{zoom}×</span>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         {showComparison && originalImage && (
-          <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 flex-1 overflow-auto">
+          <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 flex-1 overflow-auto">
             <p className="text-xs text-gray-600 mb-2 text-center">Original</p>
             <div className="overflow-auto max-h-96">
               <img
@@ -124,7 +124,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
           </div>
         )}
         
-        <div className={`border border-gray-300 rounded-lg p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
+        <div className={`border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
           {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
           <div className="overflow-auto" style={{ maxHeight: showComparison ? '500px' : '700px' }}>
             <canvas

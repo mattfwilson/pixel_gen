@@ -32,7 +32,7 @@ export default function ColorFilter({
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-lg font-semibold">Color Filter</h3>
+      <h3 className="text-base md:text-lg font-semibold">Color Filter</h3>
       
       <div className="flex gap-2">
         <button

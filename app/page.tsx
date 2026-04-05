@@ -222,13 +222,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="mb-12">
-          <div className="flex items-start justify-between">
+        <header className="mb-8 md:mb-12">
+          <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                 Pixel Gen
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm md:text-base text-gray-600">
                 Convert images to Figma-ready pixel art vectors
               </p>
             </div>
@@ -244,7 +244,7 @@ Tips:
 • Use presets for retro game art styles`;
                 alert(shortcuts);
               }}
-              className="px-3 py-2 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+              className="px-3 py-2 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors whitespace-nowrap"
               title="Keyboard shortcuts"
             >
               ⌨️ Shortcuts
@@ -252,11 +252,11 @@ Tips:
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column: Upload and Preview - 75% width */}
-          <div className="lg:col-span-3 flex flex-col gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+          {/* Left Column: Upload and Preview - 75% width on desktop */}
+          <div className="lg:col-span-3 flex flex-col gap-4 md:gap-6 lg:gap-8">
             {/* Combined Upload and Preview Container */}
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+            <div className="bg-white p-3 md:p-4 rounded-lg shadow-md flex flex-col gap-3 md:gap-4">
               {/* Upload section - always visible */}
               <div className="flex flex-col gap-3">
                 <ImageUpload
@@ -292,11 +292,11 @@ Tips:
             )}
           </div>
 
-          {/* Right Column: Controls and Export - 25% width */}
-          <div className="lg:col-span-1 flex flex-col gap-8">
+          {/* Right Column: Controls and Export - 25% width on desktop */}
+          <div className="lg:col-span-1 flex flex-col gap-4 md:gap-6 lg:gap-8">
 
-            <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
-              <h3 className="text-lg font-semibold">Options</h3>
+            <div className="bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col gap-4 md:gap-6">
+              <h3 className="text-base md:text-lg font-semibold">Options</h3>
               
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -450,7 +450,7 @@ Tips:
             </div>
 
             {pixelGrid && (
-              <div className="bg-white p-6 rounded-lg shadow-md">
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
                 <ColorFilter
                   colors={pixelGrid.uniqueColors}
                   selectedColors={selectedColors}
@@ -463,8 +463,8 @@ Tips:
 
             {/* Export section - appears when image is loaded */}
             {pixelGrid && (
-              <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
-                <h3 className="text-lg font-semibold">Export</h3>
+              <div className="bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col gap-4">
+                <h3 className="text-base md:text-lg font-semibold">Export</h3>
                 
                 <SvgDownload
                   pixelGrid={pixelGrid}
