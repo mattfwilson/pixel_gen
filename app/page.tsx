@@ -253,18 +253,8 @@ Tips:
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Upload and Controls */}
+          {/* Left Column: Controls */}
           <div className="flex flex-col gap-8">
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-3">
-              <ImageUpload
-                onImageSelect={handleImageSelect}
-                disabled={processing}
-              />
-              <SampleImages
-                onSampleSelect={handleSampleSelect}
-                disabled={processing}
-              />
-            </div>
 
             <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
               <div>
@@ -423,24 +413,24 @@ Tips:
             )}
           </div>
 
-          {/* Right Column: Preview and Export Combined */}
+          {/* Right Column: Upload and Preview */}
           <div className="flex flex-col gap-8">
-            {pixelGrid ? (
-              <>
-                <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
-                  {/* Upload section at top when image is loaded */}
-                  <div className="flex flex-col gap-3 pb-4 border-b border-gray-200">
-                    <ImageUpload
-                      onImageSelect={handleImageSelect}
-                      disabled={processing}
-                    />
-                    <SampleImages
-                      onSampleSelect={handleSampleSelect}
-                      disabled={processing}
-                    />
-                  </div>
+            {/* Upload section - always visible */}
+            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-3">
+              <ImageUpload
+                onImageSelect={handleImageSelect}
+                disabled={processing}
+              />
+              <SampleImages
+                onSampleSelect={handleSampleSelect}
+                disabled={processing}
+              />
+            </div>
 
-                  {/* Preview */}
+            {/* Preview section - appears when image is loaded */}
+            {pixelGrid && (
+              <>
+                <div className="bg-white p-6 rounded-lg shadow-md">
                   <PixelPreview
                     pixelGrid={pixelGrid}
                     selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
@@ -474,11 +464,10 @@ Tips:
                   />
                 </div>
               </>
-            ) : !processing ? (
-              <div className="bg-white p-12 rounded-lg shadow-md flex items-center justify-center text-gray-400">
-                Upload an image to get started
-              </div>
-            ) : (
+            )}
+
+            {/* Processing state */}
+            {processing && (
               <div className="bg-white p-12 rounded-lg shadow-md flex items-center justify-center">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
