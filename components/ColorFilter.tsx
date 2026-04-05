@@ -22,22 +22,21 @@ export default function ColorFilter({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Color Filter</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={onSelectAll}
-            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-          >
-            Select All
-          </button>
-          <button
-            onClick={onDeselectAll}
-            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
-          >
-            Deselect All
-          </button>
-        </div>
+      <h3 className="text-lg font-semibold">Color Filter</h3>
+      
+      <div className="flex gap-2">
+        <button
+          onClick={onSelectAll}
+          className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+        >
+          Select All
+        </button>
+        <button
+          onClick={onDeselectAll}
+          className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+        >
+          Deselect All
+        </button>
       </div>
       
       <p className="text-sm text-gray-600">
