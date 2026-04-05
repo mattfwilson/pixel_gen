@@ -22,10 +22,10 @@ export default function ColorFilter({
 
   // Calculate grid columns and swatch size based on color count
   const getGridConfig = () => {
-    if (colors.length <= 8) return { cols: 4, size: 'w-12 h-12', minSize: '48px' };
-    if (colors.length <= 16) return { cols: 6, size: 'w-10 h-10', minSize: '40px' };
-    if (colors.length <= 32) return { cols: 8, size: 'w-8 h-8', minSize: '32px' };
-    return { cols: 10, size: 'w-6 h-6', minSize: '24px' };
+    if (colors.length <= 8) return { cols: 4, size: 'w-8 h-8', minSize: '32px' };
+    if (colors.length <= 16) return { cols: 6, size: 'w-6 h-6', minSize: '24px' };
+    if (colors.length <= 32) return { cols: 8, size: 'w-5 h-5', minSize: '20px' };
+    return { cols: 10, size: 'w-4 h-4', minSize: '16px' };
   };
 
   const { cols, size, minSize } = getGridConfig();
