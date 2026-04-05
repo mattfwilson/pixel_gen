@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ImageUpload from '@/components/ImageUpload';
 import PixelPreview from '@/components/PixelPreview';
 import ColorFilter from '@/components/ColorFilter';
@@ -14,14 +14,16 @@ export default function Home() {
   const [pixelSize, setPixelSize] = useState(10);
   const [paletteSize, setPaletteSize] = useState(16);
   const [processing, setProcessing] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const handleImageSelect = async (file: File) => {
+  const processImage = async (file: File, newPixelSize: number, newPaletteSize: number) => {
     setProcessing(true);
     try {
       const grid = await pixelateImage(file, {
-        pixelSize,
+        pixelSize: newPixelSize,
         maxDimension: 100,
-        paletteSize,
+        paletteSize: newPaletteSize,
       });
       setPixelGrid(grid);
       setSelectedColors(grid.uniqueColors); // Select all colors by default
@@ -30,6 +32,34 @@ export default function Home() {
       alert('Failed to process image. Please try another file.');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const debouncedProcessImage = (file: File, newPixelSize: number, newPaletteSize: number) => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      processImage(file, newPixelSize, newPaletteSize);
+    }, 300); // 300ms debounce
+  };
+
+  const handleImageSelect = async (file: File) => {
+    setUploadedFile(file);
+    await processImage(file, pixelSize, paletteSize);
+  };
+
+  const handlePixelSizeChange = (newSize: number) => {
+    setPixelSize(newSize);
+    if (uploadedFile) {
+      debouncedProcessImage(uploadedFile, newSize, paletteSize);
+    }
+  };
+
+  const handlePaletteSizeChange = (newSize: number) => {
+    setPaletteSize(newSize);
+    if (uploadedFile) {
+      debouncedProcessImage(uploadedFile, pixelSize, newSize);
     }
   };
 
@@ -101,8 +131,8 @@ export default function Home() {
                   min="1"
                   max="50"
                   value={pixelSize}
-                  onChange={e => setPixelSize(Number(e.target.value))}
-                  disabled={processing}
+                  onChange={e => handlePixelSizeChange(Number(e.target.value))}
+                  disabled={processing || !uploadedFile}
                   className="w-full"
                 />
                 <p className="text-xs text-gray-600 mt-2">
@@ -120,8 +150,8 @@ export default function Home() {
                   min="4"
                   max="64"
                   value={paletteSize}
-                  onChange={e => setPaletteSize(Number(e.target.value))}
-                  disabled={processing}
+                  onChange={e => handlePaletteSizeChange(Number(e.target.value))}
+                  disabled={processing || !uploadedFile}
                   className="w-full"
                 />
                 <p className="text-xs text-gray-600 mt-2">
