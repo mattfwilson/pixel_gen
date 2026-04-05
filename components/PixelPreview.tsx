@@ -109,7 +109,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
         {showComparison && originalImage && (
           <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 flex-1 overflow-auto">
             <p className="text-xs text-gray-600 mb-2 text-center">Original</p>
-            <div className="overflow-auto max-h-96">
+            <div className="overflow-auto" style={{ maxHeight: '500px' }}>
               <img
                 src={originalImage}
                 alt="Original"
