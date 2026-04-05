@@ -72,7 +72,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
         <div className="flex gap-2">
           <button
             onClick={() => setShowGrid(!showGrid)}
-            className={`px-3 py-1 text-sm rounded transition-colors ${
+            className={`px-3 py-1 text-xs rounded transition-colors ${
               showGrid ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
             }`}
           >
@@ -81,7 +81,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
           {originalImage && (
             <button
               onClick={() => setShowComparison(!showComparison)}
-              className={`px-3 py-1 text-sm rounded transition-colors ${
+              className={`px-3 py-1 text-xs rounded transition-colors ${
                 showComparison ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
               }`}
             >

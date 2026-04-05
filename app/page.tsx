@@ -244,7 +244,7 @@ Tips:
 • Use presets for retro game art styles`;
                 alert(shortcuts);
               }}
-              className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+              className="px-3 py-2 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
               title="Keyboard shortcuts"
             >
               ⌨️ Shortcuts
@@ -389,7 +389,7 @@ Tips:
                   value={selectedPreset}
                   onChange={e => handlePresetChange(e.target.value)}
                   disabled={processing || !uploadedFile}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                 >
                   {COLOR_PRESETS.map(preset => (
                     <option key={preset.name} value={preset.name}>

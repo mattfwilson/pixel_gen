@@ -49,7 +49,7 @@ export default function FigmaExport({ onExport, disabled }: FigmaExportProps) {
           onChange={e => setAccessToken(e.target.value)}
           placeholder="figd_..."
           disabled={disabled || loading}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+          className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
         />
         <a
           href="https://help.figma.com/hc/en-us/articles/8085703771159-Manage-personal-access-tokens"
@@ -72,7 +72,7 @@ export default function FigmaExport({ onExport, disabled }: FigmaExportProps) {
           onChange={e => setFileKey(e.target.value)}
           placeholder="abc123def456"
           disabled={disabled || loading}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+          className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
         />
         <p className="text-xs text-gray-600">
           Found in your Figma file URL: figma.com/file/<strong>FILE_KEY</strong>/...
@@ -94,7 +94,7 @@ export default function FigmaExport({ onExport, disabled }: FigmaExportProps) {
       <button
         onClick={handleExport}
         disabled={disabled || loading}
-        className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
+        className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
       >
         {loading ? 'Exporting...' : 'Export to Figma'}
       </button>

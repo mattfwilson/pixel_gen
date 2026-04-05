@@ -27,13 +27,13 @@ export default function ColorFilter({
         <div className="flex gap-2">
           <button
             onClick={onSelectAll}
-            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
           >
             Select All
           </button>
           <button
             onClick={onDeselectAll}
-            className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
           >
             Deselect All
           </button>
