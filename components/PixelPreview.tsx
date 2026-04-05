@@ -13,7 +13,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [showGrid, setShowGrid] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [showComparison, setShowComparison] = useState(false);
+  const [showComparison, setShowComparison] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
