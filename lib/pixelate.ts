@@ -15,18 +15,20 @@ export interface PixelateOptions {
   pixelSize: number; // scale factor (e.g., 10 = each pixel is 10x10 input pixels)
   maxDimension: number; // max width or height in output pixels (default 100)
   paletteSize?: number; // limit colors to N using k-means clustering (optional)
+  colorPreset?: string[]; // snap colors to specific palette (optional)
 }
 
 /**
  * Pixelate an image file by sampling colors at regular intervals
  */
 import { quantizeColors } from './colorQuantize';
+import { snapToNearestColor } from './colorPresets';
 
 export async function pixelateImage(
   file: File,
   options: PixelateOptions
 ): Promise<PixelGrid> {
-  const { pixelSize, maxDimension, paletteSize } = options;
+  const { pixelSize, maxDimension, paletteSize, colorPreset } = options;
 
   // Load image
   const img = await loadImage(file);
@@ -80,8 +82,20 @@ export async function pixelateImage(
   let uniqueColors = Array.from(colorSet).sort();
   let finalPixels = pixels;
   
-  // Apply color quantization if requested
-  if (paletteSize && uniqueColors.length > paletteSize) {
+  // Apply color preset snapping first (takes priority over quantization)
+  if (colorPreset && colorPreset.length > 0) {
+    console.log(`Snapping colors to preset (${colorPreset.length} colors)...`);
+    finalPixels = pixels.map(pixel => ({
+      ...pixel,
+      color: snapToNearestColor(pixel.color, colorPreset),
+    }));
+    
+    // Update unique colors
+    const presetColorSet = new Set(finalPixels.map(p => p.color));
+    uniqueColors = Array.from(presetColorSet).sort();
+  }
+  // Apply color quantization if requested (and no preset)
+  else if (paletteSize && uniqueColors.length > paletteSize) {
     console.log(`Quantizing ${uniqueColors.length} colors to ${paletteSize}...`);
     const colorMap = quantizeColors(uniqueColors, paletteSize);
     

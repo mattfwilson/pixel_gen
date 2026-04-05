@@ -35,8 +35,8 @@ export default function FigmaExport({ onExport, disabled }: FigmaExportProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 p-6 border border-gray-300 rounded-lg bg-white">
-      <h3 className="text-lg font-semibold">Export to Figma</h3>
+    <div className="flex flex-col gap-4">
+      <h4 className="text-sm font-semibold text-gray-700">Export to Figma (Advanced)</h4>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="accessToken" className="text-sm font-medium">
