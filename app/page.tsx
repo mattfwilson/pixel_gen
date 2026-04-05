@@ -147,7 +147,7 @@ export default function Home() {
                 <input
                   id="paletteSize"
                   type="range"
-                  min="4"
+                  min="2"
                   max="64"
                   value={paletteSize}
                   onChange={e => handlePaletteSizeChange(Number(e.target.value))}
