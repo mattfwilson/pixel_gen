@@ -18,6 +18,7 @@ export default function Home() {
   const [selectedPreset, setSelectedPreset] = useState('None');
   const [processing, setProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const processImage = async (file: File, newPixelSize: number, newPaletteSize: number, preset: string) => {
@@ -51,6 +52,14 @@ export default function Home() {
 
   const handleImageSelect = async (file: File) => {
     setUploadedFile(file);
+    
+    // Create data URL for original image comparison
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setOriginalImageUrl(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+    
     await processImage(file, pixelSize, paletteSize, selectedPreset);
   };
 
@@ -216,6 +225,7 @@ export default function Home() {
                   <PixelPreview
                     pixelGrid={pixelGrid}
                     selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
+                    originalImage={originalImageUrl || undefined}
                   />
                 </div>
 

@@ -47,13 +47,21 @@ export default function ColorFilter({
       <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-lg bg-white">
         {colors.map(color => {
           const isSelected = selectedColors.includes(color);
+          
+          const handleCopyHex = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(color);
+            // Could add a toast notification here
+          };
+          
           return (
             <div
               key={color}
-              className="relative"
+              className="relative group"
             >
               <button
                 onClick={() => onColorToggle(color)}
+                onDoubleClick={handleCopyHex}
                 className={`
                   w-12 h-12 rounded border-2 transition-all
                   ${isSelected ? 'border-blue-600 scale-110 shadow-lg' : 'border-gray-300'}
@@ -64,13 +72,16 @@ export default function ColorFilter({
                   minWidth: '48px',
                   minHeight: '48px',
                 }}
-                title={`${color} ${isSelected ? '(selected)' : ''}`}
+                title={`${color} ${isSelected ? '(selected)' : ''} - Double-click to copy`}
                 aria-label={`Color ${color}`}
               />
             </div>
           );
         })}
       </div>
+      <p className="text-xs text-gray-500 italic">
+        Double-click a color to copy its hex code
+      </p>
     </div>
   );
 }
