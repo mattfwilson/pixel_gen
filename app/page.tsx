@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import ImageUpload from '@/components/ImageUpload';
+import SampleImages from '@/components/SampleImages';
 import PixelPreview from '@/components/PixelPreview';
 import ColorFilter from '@/components/ColorFilter';
 import FigmaExport from '@/components/FigmaExport';
@@ -87,6 +88,59 @@ export default function Home() {
     await processImage(file, pixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
   };
 
+  const handleSampleSelect = async (url: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const file = new File([blob], 'sample.svg', { type: 'image/svg+xml' });
+      handleImageSelect(file);
+    } catch (error) {
+      console.error('Failed to load sample:', error);
+    }
+  };
+
+  const handlePaste = async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          handleImageSelect(file);
+          break;
+        }
+      }
+    }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!uploadedFile) return;
+
+      // Arrow keys to adjust pixel scale
+      if (sizeMode === 'scale' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          handlePixelSizeChange(Math.min(50, pixelSize + 1));
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          handlePixelSizeChange(Math.max(1, pixelSize - 1));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('paste', handlePaste as any);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('paste', handlePaste as any);
+    };
+  }, [uploadedFile, pixelSize, sizeMode]);
+
+
   const handleDitheringChange = (enabled: boolean) => {
     setUseDithering(enabled);
     if (uploadedFile) {
@@ -169,20 +223,45 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Pixel Gen
-          </h1>
-          <p className="text-gray-600">
-            Convert images to Figma-ready pixel art vectors
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                Pixel Gen
+              </h1>
+              <p className="text-gray-600">
+                Convert images to Figma-ready pixel art vectors
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                const shortcuts = `Keyboard Shortcuts:
+• Arrow Up/Down: Adjust pixel scale
+• Cmd/Ctrl + V: Paste image from clipboard
+
+Tips:
+• Drag & drop images anywhere
+• Double-click color swatches to copy hex
+• Use presets for retro game art styles`;
+                alert(shortcuts);
+              }}
+              className="px-4 py-2 text-sm bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+              title="Keyboard shortcuts"
+            >
+              ⌨️ Shortcuts
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Upload and Controls */}
           <div className="flex flex-col gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
               <ImageUpload
                 onImageSelect={handleImageSelect}
+                disabled={processing}
+              />
+              <SampleImages
+                onSampleSelect={handleSampleSelect}
                 disabled={processing}
               />
             </div>
