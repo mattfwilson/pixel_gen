@@ -415,55 +415,59 @@ Tips:
 
           {/* Right Column: Upload and Preview */}
           <div className="flex flex-col gap-8">
-            {/* Upload section - always visible */}
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-3">
-              <ImageUpload
-                onImageSelect={handleImageSelect}
-                disabled={processing}
-              />
-              <SampleImages
-                onSampleSelect={handleSampleSelect}
-                disabled={processing}
-              />
-            </div>
+            {/* Combined Upload and Preview Container */}
+            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+              {/* Upload section - always visible */}
+              <div className="flex flex-col gap-3">
+                <ImageUpload
+                  onImageSelect={handleImageSelect}
+                  disabled={processing}
+                />
+                <SampleImages
+                  onSampleSelect={handleSampleSelect}
+                  disabled={processing}
+                />
+              </div>
 
-            {/* Preview section - appears when image is loaded */}
-            {pixelGrid && (
-              <>
-                <div className="bg-white p-6 rounded-lg shadow-md">
+              {/* Preview section - appears when image is loaded */}
+              {pixelGrid && (
+                <div className="pt-4 border-t border-gray-200">
                   <PixelPreview
                     pixelGrid={pixelGrid}
                     selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
                     originalImage={originalImageUrl || undefined}
                   />
                 </div>
+              )}
+            </div>
 
-                <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold">Export</h3>
-                  
-                  <SvgDownload
-                    pixelGrid={pixelGrid}
-                    selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
-                    disabled={processing || selectedColors.length === 0}
-                    groupByColor={groupByColor}
-                    onGroupByColorChange={setGroupByColor}
-                  />
+            {/* Export section - appears when image is loaded */}
+            {pixelGrid && (
+              <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
+                <h3 className="text-lg font-semibold">Export</h3>
+                
+                <SvgDownload
+                  pixelGrid={pixelGrid}
+                  selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
+                  disabled={processing || selectedColors.length === 0}
+                  groupByColor={groupByColor}
+                  onGroupByColorChange={setGroupByColor}
+                />
 
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div className="relative flex justify-center text-sm">
-                      <span className="px-2 bg-white text-gray-500">or</span>
-                    </div>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
                   </div>
-
-                  <FigmaExport
-                    onExport={handleExport}
-                    disabled={processing || selectedColors.length === 0}
-                  />
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">or</span>
+                  </div>
                 </div>
-              </>
+
+                <FigmaExport
+                  onExport={handleExport}
+                  disabled={processing || selectedColors.length === 0}
+                />
+              </div>
             )}
 
             {/* Processing state */}
