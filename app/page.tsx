@@ -253,7 +253,46 @@ Tips:
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Controls */}
+          {/* Left Column: Upload and Preview */}
+          <div className="flex flex-col gap-8">
+            {/* Combined Upload and Preview Container */}
+            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
+              {/* Upload section - always visible */}
+              <div className="flex flex-col gap-3">
+                <ImageUpload
+                  onImageSelect={handleImageSelect}
+                  disabled={processing}
+                />
+                <SampleImages
+                  onSampleSelect={handleSampleSelect}
+                  disabled={processing}
+                />
+              </div>
+
+              {/* Preview section - appears when image is loaded */}
+              {pixelGrid && (
+                <div className="pt-4 border-t border-gray-200">
+                  <PixelPreview
+                    pixelGrid={pixelGrid}
+                    selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
+                    originalImage={originalImageUrl || undefined}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Processing state */}
+            {processing && (
+              <div className="bg-white p-12 rounded-lg shadow-md flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Processing image...</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Controls and Export */}
           <div className="flex flex-col gap-8">
 
             <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
@@ -413,34 +452,6 @@ Tips:
             )}
           </div>
 
-          {/* Right Column: Upload and Preview */}
-          <div className="flex flex-col gap-8">
-            {/* Combined Upload and Preview Container */}
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col gap-4">
-              {/* Upload section - always visible */}
-              <div className="flex flex-col gap-3">
-                <ImageUpload
-                  onImageSelect={handleImageSelect}
-                  disabled={processing}
-                />
-                <SampleImages
-                  onSampleSelect={handleSampleSelect}
-                  disabled={processing}
-                />
-              </div>
-
-              {/* Preview section - appears when image is loaded */}
-              {pixelGrid && (
-                <div className="pt-4 border-t border-gray-200">
-                  <PixelPreview
-                    pixelGrid={pixelGrid}
-                    selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
-                    originalImage={originalImageUrl || undefined}
-                  />
-                </div>
-              )}
-            </div>
-
             {/* Export section - appears when image is loaded */}
             {pixelGrid && (
               <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
@@ -467,16 +478,6 @@ Tips:
                   onExport={handleExport}
                   disabled={processing || selectedColors.length === 0}
                 />
-              </div>
-            )}
-
-            {/* Processing state */}
-            {processing && (
-              <div className="bg-white p-12 rounded-lg shadow-md flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Processing image...</p>
-                </div>
               </div>
             )}
           </div>
