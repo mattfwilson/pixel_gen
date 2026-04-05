@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pixel Gen
 
-## Getting Started
+Convert images to Figma-ready pixel art vectors.
 
-First, run the development server:
+## Features
 
+- Upload JPG, PNG, or SVG images
+- Adjustable pixel scale (1-50x)
+- Live preview of pixelated output
+- Color filtering - export only selected colors
+- Direct export to Figma via API
+- Max output: 100×100 pixels (10,000 shapes)
+
+## Setup
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run development server:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Open [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Usage
 
-## Learn More
+### 1. Upload Image
+- Click "Upload Image" and select a JPG, PNG, or SVG file
+- Adjust pixel scale slider (higher = coarser/fewer shapes)
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Filter Colors (Optional)
+- Click color swatches to include/exclude specific colors
+- Use "Select All" / "Deselect All" for bulk actions
+- Preview updates in real-time
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Export to Figma
+You'll need:
+- **Figma Access Token**: Get from [Account Settings → Personal Access Tokens](https://help.figma.com/hc/en-us/articles/8085703771159-Manage-personal-access-tokens)
+- **File Key**: From your Figma file URL `figma.com/file/FILE_KEY/...`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Enter both and click "Export to Figma". The pixel art will be created as a frame with individual vector rectangles.
 
-## Deploy on Vercel
+## Technical Details
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Built with Next.js 14, React, TypeScript, Tailwind CSS
+- Client-side image processing via Canvas API
+- Each pixel becomes a 10×10 rectangle in Figma
+- Color filtering preserves all unique colors until export
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Limitations
+
+- Output capped at 100×100 pixels (10,000 shapes) for Figma performance
+- Figma API has rate limits - avoid exporting very frequently
+- SVGs are rasterized before pixelation (vector data is lost)
