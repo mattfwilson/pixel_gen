@@ -14,16 +14,19 @@ export interface Pixel {
 export interface PixelateOptions {
   pixelSize: number; // scale factor (e.g., 10 = each pixel is 10x10 input pixels)
   maxDimension: number; // max width or height in output pixels (default 100)
+  paletteSize?: number; // limit colors to N using k-means clustering (optional)
 }
 
 /**
  * Pixelate an image file by sampling colors at regular intervals
  */
+import { quantizeColors } from './colorQuantize';
+
 export async function pixelateImage(
   file: File,
   options: PixelateOptions
 ): Promise<PixelGrid> {
-  const { pixelSize, maxDimension } = options;
+  const { pixelSize, maxDimension, paletteSize } = options;
 
   // Load image
   const img = await loadImage(file);
@@ -74,11 +77,38 @@ export async function pixelateImage(
     }
   }
   
+  let uniqueColors = Array.from(colorSet).sort();
+  let finalPixels = pixels;
+  
+  // Apply color quantization if requested
+  if (paletteSize && uniqueColors.length > paletteSize) {
+    console.log(`Quantizing ${uniqueColors.length} colors to ${paletteSize}...`);
+    const colorMap = quantizeColors(uniqueColors, paletteSize);
+    
+    // Remap pixel colors
+    finalPixels = pixels.map(pixel => ({
+      ...pixel,
+      color: colorMap.get(pixel.color) || pixel.color,
+    }));
+    
+    // Update unique colors
+    const quantizedColorSet = new Set(finalPixels.map(p => p.color));
+    uniqueColors = Array.from(quantizedColorSet).sort();
+  }
+  
+  console.log('Pixelation complete:', {
+    outputWidth,
+    outputHeight,
+    totalPixels: finalPixels.length,
+    uniqueColorCount: uniqueColors.length,
+    sampleColors: uniqueColors.slice(0, 10), // First 10 colors for debugging
+  });
+  
   return {
-    pixels,
+    pixels: finalPixels,
     width: outputWidth,
     height: outputHeight,
-    uniqueColors: Array.from(colorSet).sort(),
+    uniqueColors,
   };
 }
 

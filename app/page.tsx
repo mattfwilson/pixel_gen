@@ -12,6 +12,7 @@ export default function Home() {
   const [pixelGrid, setPixelGrid] = useState<PixelGrid | null>(null);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [pixelSize, setPixelSize] = useState(10);
+  const [paletteSize, setPaletteSize] = useState(16);
   const [processing, setProcessing] = useState(false);
 
   const handleImageSelect = async (file: File) => {
@@ -20,6 +21,7 @@ export default function Home() {
       const grid = await pixelateImage(file, {
         pixelSize,
         maxDimension: 100,
+        paletteSize,
       });
       setPixelGrid(grid);
       setSelectedColors(grid.uniqueColors); // Select all colors by default
@@ -88,23 +90,44 @@ export default function Home() {
               />
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
-                Pixel Scale: {pixelSize}x
-              </label>
-              <input
-                id="pixelSize"
-                type="range"
-                min="1"
-                max="50"
-                value={pixelSize}
-                onChange={e => setPixelSize(Number(e.target.value))}
-                disabled={processing}
-                className="w-full"
-              />
-              <p className="text-xs text-gray-600 mt-2">
-                Higher values = coarser pixelation (fewer shapes)
-              </p>
+            <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
+              <div>
+                <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
+                  Pixel Scale: {pixelSize}x
+                </label>
+                <input
+                  id="pixelSize"
+                  type="range"
+                  min="1"
+                  max="50"
+                  value={pixelSize}
+                  onChange={e => setPixelSize(Number(e.target.value))}
+                  disabled={processing}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-600 mt-2">
+                  Higher values = coarser pixelation (fewer shapes)
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="paletteSize" className="block text-sm font-medium mb-2">
+                  Max Colors: {paletteSize}
+                </label>
+                <input
+                  id="paletteSize"
+                  type="range"
+                  min="4"
+                  max="64"
+                  value={paletteSize}
+                  onChange={e => setPaletteSize(Number(e.target.value))}
+                  disabled={processing}
+                  className="w-full"
+                />
+                <p className="text-xs text-gray-600 mt-2">
+                  Limits color palette using k-means clustering
+                </p>
+              </div>
             </div>
 
             {pixelGrid && (

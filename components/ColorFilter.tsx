@@ -16,6 +16,9 @@ export default function ColorFilter({
   onDeselectAll,
 }: ColorFilterProps) {
   if (colors.length === 0) return null;
+  
+  // Debug: log colors to console
+  console.log('ColorFilter rendering with colors:', colors.slice(0, 10));
 
   return (
     <div className="flex flex-col gap-4">
@@ -41,21 +44,30 @@ export default function ColorFilter({
         {selectedColors.length} of {colors.length} colors selected
       </p>
 
-      <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-lg">
+      <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-lg bg-white">
         {colors.map(color => {
           const isSelected = selectedColors.includes(color);
           return (
-            <button
+            <div
               key={color}
-              onClick={() => onColorToggle(color)}
-              className={`
-                w-12 h-12 rounded border-2 transition-all
-                ${isSelected ? 'border-blue-600 scale-110' : 'border-gray-300'}
-                hover:scale-110
-              `}
-              style={{ backgroundColor: color }}
-              title={color}
-            />
+              className="relative"
+            >
+              <button
+                onClick={() => onColorToggle(color)}
+                className={`
+                  w-12 h-12 rounded border-2 transition-all
+                  ${isSelected ? 'border-blue-600 scale-110 shadow-lg' : 'border-gray-300'}
+                  hover:scale-110
+                `}
+                style={{ 
+                  backgroundColor: color,
+                  minWidth: '48px',
+                  minHeight: '48px',
+                }}
+                title={`${color} ${isSelected ? '(selected)' : ''}`}
+                aria-label={`Color ${color}`}
+              />
+            </div>
           );
         })}
       </div>
