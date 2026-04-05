@@ -16,20 +16,36 @@ export default function Home() {
   const [pixelSize, setPixelSize] = useState(10);
   const [paletteSize, setPaletteSize] = useState(16);
   const [selectedPreset, setSelectedPreset] = useState('None');
+  const [sizeMode, setSizeMode] = useState<'scale' | 'exact'>('scale');
+  const [exactWidth, setExactWidth] = useState(32);
+  const [exactHeight, setExactHeight] = useState(32);
+  const [useDithering, setUseDithering] = useState(false);
+  const [groupByColor, setGroupByColor] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const processImage = async (file: File, newPixelSize: number, newPaletteSize: number, preset: string) => {
+  const processImage = async (
+    file: File, 
+    newPixelSize: number, 
+    newPaletteSize: number, 
+    preset: string,
+    mode: 'scale' | 'exact' = 'scale',
+    width?: number,
+    height?: number
+  ) => {
     setProcessing(true);
     try {
       const presetColors = COLOR_PRESETS.find(p => p.name === preset)?.colors || [];
       const grid = await pixelateImage(file, {
-        pixelSize: newPixelSize,
-        maxDimension: 100,
+        ...(mode === 'exact' && width && height 
+          ? { exactWidth: width, exactHeight: height }
+          : { pixelSize: newPixelSize, maxDimension: 100 }
+        ),
         paletteSize: presetColors.length > 0 ? undefined : newPaletteSize, // Disable quantization when using preset
         colorPreset: presetColors.length > 0 ? presetColors : undefined,
+        useDithering,
       });
       setPixelGrid(grid);
       setSelectedColors(grid.uniqueColors); // Select all colors by default
@@ -41,12 +57,20 @@ export default function Home() {
     }
   };
 
-  const debouncedProcessImage = (file: File, newPixelSize: number, newPaletteSize: number, preset: string) => {
+  const debouncedProcessImage = (
+    file: File, 
+    newPixelSize: number, 
+    newPaletteSize: number, 
+    preset: string,
+    mode: 'scale' | 'exact' = 'scale',
+    width?: number,
+    height?: number
+  ) => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
     debounceTimer.current = setTimeout(() => {
-      processImage(file, newPixelSize, newPaletteSize, preset);
+      processImage(file, newPixelSize, newPaletteSize, preset, mode, width, height);
     }, 300); // 300ms debounce
   };
 
@@ -60,27 +84,49 @@ export default function Home() {
     };
     reader.readAsDataURL(file);
     
-    await processImage(file, pixelSize, paletteSize, selectedPreset);
+    await processImage(file, pixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
+  };
+
+  const handleDitheringChange = (enabled: boolean) => {
+    setUseDithering(enabled);
+    if (uploadedFile) {
+      debouncedProcessImage(uploadedFile, pixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
+    }
   };
 
   const handlePixelSizeChange = (newSize: number) => {
     setPixelSize(newSize);
     if (uploadedFile) {
-      debouncedProcessImage(uploadedFile, newSize, paletteSize, selectedPreset);
+      debouncedProcessImage(uploadedFile, newSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
     }
   };
 
   const handlePaletteSizeChange = (newSize: number) => {
     setPaletteSize(newSize);
     if (uploadedFile) {
-      debouncedProcessImage(uploadedFile, pixelSize, newSize, selectedPreset);
+      debouncedProcessImage(uploadedFile, pixelSize, newSize, selectedPreset, sizeMode, exactWidth, exactHeight);
     }
   };
 
   const handlePresetChange = (preset: string) => {
     setSelectedPreset(preset);
     if (uploadedFile) {
-      debouncedProcessImage(uploadedFile, pixelSize, paletteSize, preset);
+      debouncedProcessImage(uploadedFile, pixelSize, paletteSize, preset, sizeMode, exactWidth, exactHeight);
+    }
+  };
+
+  const handleSizeModeChange = (mode: 'scale' | 'exact') => {
+    setSizeMode(mode);
+    if (uploadedFile) {
+      debouncedProcessImage(uploadedFile, pixelSize, paletteSize, selectedPreset, mode, exactWidth, exactHeight);
+    }
+  };
+
+  const handleExactSizeChange = (width: number, height: number) => {
+    setExactWidth(width);
+    setExactHeight(height);
+    if (uploadedFile && sizeMode === 'exact') {
+      debouncedProcessImage(uploadedFile, pixelSize, paletteSize, selectedPreset, 'exact', width, height);
     }
   };
 
@@ -143,23 +189,88 @@ export default function Home() {
 
             <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
               <div>
-                <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
-                  Pixel Scale: {pixelSize}x
+                <label className="block text-sm font-medium mb-2">
+                  Size Mode
                 </label>
-                <input
-                  id="pixelSize"
-                  type="range"
-                  min="1"
-                  max="50"
-                  value={pixelSize}
-                  onChange={e => handlePixelSizeChange(Number(e.target.value))}
-                  disabled={processing || !uploadedFile}
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-600 mt-2">
-                  Higher values = coarser pixelation (fewer shapes)
-                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSizeModeChange('scale')}
+                    disabled={processing || !uploadedFile}
+                    className={`flex-1 px-4 py-2 rounded transition-colors ${
+                      sizeMode === 'scale'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300'
+                    }`}
+                  >
+                    Scale
+                  </button>
+                  <button
+                    onClick={() => handleSizeModeChange('exact')}
+                    disabled={processing || !uploadedFile}
+                    className={`flex-1 px-4 py-2 rounded transition-colors ${
+                      sizeMode === 'exact'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300'
+                    }`}
+                  >
+                    Exact Size
+                  </button>
+                </div>
               </div>
+
+              {sizeMode === 'scale' ? (
+                <div>
+                  <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
+                    Pixel Scale: {pixelSize}x
+                  </label>
+                  <input
+                    id="pixelSize"
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={pixelSize}
+                    onChange={e => handlePixelSizeChange(Number(e.target.value))}
+                    disabled={processing || !uploadedFile}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-600 mt-2">
+                    Higher values = coarser pixelation (fewer shapes)
+                  </p>
+                </div>
+              ) : (
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label htmlFor="exactWidth" className="block text-sm font-medium mb-2">
+                      Width
+                    </label>
+                    <input
+                      id="exactWidth"
+                      type="number"
+                      min="1"
+                      max="200"
+                      value={exactWidth}
+                      onChange={e => handleExactSizeChange(Number(e.target.value), exactHeight)}
+                      disabled={processing || !uploadedFile}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="exactHeight" className="block text-sm font-medium mb-2">
+                      Height
+                    </label>
+                    <input
+                      id="exactHeight"
+                      type="number"
+                      min="1"
+                      max="200"
+                      value={exactHeight}
+                      onChange={e => handleExactSizeChange(exactWidth, Number(e.target.value))}
+                      disabled={processing || !uploadedFile}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label htmlFor="colorPreset" className="block text-sm font-medium mb-2">
@@ -202,6 +313,22 @@ export default function Home() {
                   Limits color palette using k-means clustering
                 </p>
               </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useDithering}
+                    onChange={e => handleDitheringChange(e.target.checked)}
+                    disabled={processing || !uploadedFile || (selectedPreset === 'None' && paletteSize >= 64)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">Enable Dithering</span>
+                </label>
+                <p className="text-xs text-gray-600 mt-1 ml-6">
+                  Floyd-Steinberg dithering for smoother color transitions
+                </p>
+              </div>
             </div>
 
             {pixelGrid && (
@@ -236,6 +363,8 @@ export default function Home() {
                     pixelGrid={pixelGrid}
                     selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
                     disabled={processing || selectedColors.length === 0}
+                    groupByColor={groupByColor}
+                    onGroupByColorChange={setGroupByColor}
                   />
 
                   <div className="relative">

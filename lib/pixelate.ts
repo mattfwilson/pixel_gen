@@ -12,10 +12,13 @@ export interface Pixel {
 }
 
 export interface PixelateOptions {
-  pixelSize: number; // scale factor (e.g., 10 = each pixel is 10x10 input pixels)
-  maxDimension: number; // max width or height in output pixels (default 100)
+  pixelSize?: number; // scale factor (e.g., 10 = each pixel is 10x10 input pixels)
+  maxDimension?: number; // max width or height in output pixels (default 100)
+  exactWidth?: number; // exact output width (takes priority over pixelSize)
+  exactHeight?: number; // exact output height (takes priority over pixelSize)
   paletteSize?: number; // limit colors to N using k-means clustering (optional)
   colorPreset?: string[]; // snap colors to specific palette (optional)
+  useDithering?: boolean; // apply Floyd-Steinberg dithering when reducing colors (optional)
 }
 
 /**
@@ -23,28 +26,41 @@ export interface PixelateOptions {
  */
 import { quantizeColors } from './colorQuantize';
 import { snapToNearestColor } from './colorPresets';
+import { applyDithering } from './dithering';
 
 export async function pixelateImage(
   file: File,
   options: PixelateOptions
 ): Promise<PixelGrid> {
-  const { pixelSize, maxDimension, paletteSize, colorPreset } = options;
+  const { pixelSize, maxDimension, exactWidth, exactHeight, paletteSize, colorPreset, useDithering } = options;
 
   // Load image
   const img = await loadImage(file);
   
-  // Calculate output dimensions (capped at maxDimension)
+  // Calculate output dimensions
   const inputWidth = img.width;
   const inputHeight = img.height;
   
-  let outputWidth = Math.floor(inputWidth / pixelSize);
-  let outputHeight = Math.floor(inputHeight / pixelSize);
+  let outputWidth: number;
+  let outputHeight: number;
   
-  // Cap dimensions
-  if (outputWidth > maxDimension || outputHeight > maxDimension) {
-    const scale = Math.min(maxDimension / outputWidth, maxDimension / outputHeight);
-    outputWidth = Math.floor(outputWidth * scale);
-    outputHeight = Math.floor(outputHeight * scale);
+  if (exactWidth && exactHeight) {
+    // Use exact dimensions
+    outputWidth = exactWidth;
+    outputHeight = exactHeight;
+  } else if (pixelSize) {
+    // Use pixel scale
+    outputWidth = Math.floor(inputWidth / pixelSize);
+    outputHeight = Math.floor(inputHeight / pixelSize);
+    
+    // Cap dimensions if maxDimension is specified
+    if (maxDimension && (outputWidth > maxDimension || outputHeight > maxDimension)) {
+      const scale = Math.min(maxDimension / outputWidth, maxDimension / outputHeight);
+      outputWidth = Math.floor(outputWidth * scale);
+      outputHeight = Math.floor(outputHeight * scale);
+    }
+  } else {
+    throw new Error('Either pixelSize or exactWidth/exactHeight must be provided');
   }
   
   // Draw to canvas
@@ -53,6 +69,41 @@ export async function pixelateImage(
   canvas.height = inputHeight;
   const ctx = canvas.getContext('2d')!;
   ctx.drawImage(img, 0, 0);
+  
+  // Apply dithering if requested and we have a color palette
+  if (useDithering && (colorPreset || paletteSize)) {
+    const fullImageData = ctx.getImageData(0, 0, inputWidth, inputHeight);
+    
+    // Get target palette
+    let targetPalette: string[] = [];
+    if (colorPreset && colorPreset.length > 0) {
+      targetPalette = colorPreset;
+    } else if (paletteSize) {
+      // Need to do a preliminary color extraction to get palette for dithering
+      const tempColorSet = new Set<string>();
+      for (let y = 0; y < inputHeight; y += 10) {
+        for (let x = 0; x < inputWidth; x += 10) {
+          const data = ctx.getImageData(x, y, 1, 1).data;
+          if (data[3] > 0) {
+            tempColorSet.add(rgbToHex(data[0], data[1], data[2]));
+          }
+        }
+      }
+      const tempColors = Array.from(tempColorSet);
+      if (tempColors.length > paletteSize) {
+        const colorMap = quantizeColors(tempColors, paletteSize);
+        targetPalette = Array.from(new Set(colorMap.values()));
+      } else {
+        targetPalette = tempColors;
+      }
+    }
+    
+    if (targetPalette.length > 0) {
+      console.log(`Applying dithering with ${targetPalette.length} colors...`);
+      const dithered = applyDithering(fullImageData, targetPalette);
+      ctx.putImageData(dithered, 0, 0);
+    }
+  }
   
   // Sample pixels
   const pixels: Pixel[] = [];
