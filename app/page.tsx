@@ -252,54 +252,56 @@ Tips:
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Upload and Controls */}
-          <div className="flex flex-col gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
+        {/* Upload Section - Full Width */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-8">
+          <div className="flex gap-4 items-start">
+            <div className="flex-1">
               <ImageUpload
                 onImageSelect={handleImageSelect}
                 disabled={processing}
               />
-              <SampleImages
-                onSampleSelect={handleSampleSelect}
-                disabled={processing}
-              />
             </div>
+            <SampleImages
+              onSampleSelect={handleSampleSelect}
+              disabled={processing}
+            />
+          </div>
+        </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Size Mode
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleSizeModeChange('scale')}
-                    disabled={processing || !uploadedFile}
-                    className={`flex-1 px-4 py-2 rounded transition-colors ${
-                      sizeMode === 'scale'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300'
-                    }`}
-                  >
-                    Scale
-                  </button>
-                  <button
-                    onClick={() => handleSizeModeChange('exact')}
-                    disabled={processing || !uploadedFile}
-                    className={`flex-1 px-4 py-2 rounded transition-colors ${
-                      sizeMode === 'exact'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 hover:bg-gray-300'
-                    }`}
-                  >
-                    Exact Size
-                  </button>
-                </div>
+        {/* Controls Section - Full Width */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-8">
+          <div className="flex flex-col gap-4">
+            {/* Row 1: Size Mode */}
+            <div className="flex gap-4 items-center">
+              <label className="text-sm font-medium whitespace-nowrap">Size Mode:</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSizeModeChange('scale')}
+                  disabled={processing || !uploadedFile}
+                  className={`px-3 py-1 text-sm rounded transition-colors ${
+                    sizeMode === 'scale'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  Scale
+                </button>
+                <button
+                  onClick={() => handleSizeModeChange('exact')}
+                  disabled={processing || !uploadedFile}
+                  className={`px-3 py-1 text-sm rounded transition-colors ${
+                    sizeMode === 'exact'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300'
+                  }`}
+                >
+                  Exact Size
+                </button>
               </div>
 
               {sizeMode === 'scale' ? (
-                <div>
-                  <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
+                <div className="flex-1 flex items-center gap-2">
+                  <label htmlFor="pixelSize" className="text-sm font-medium whitespace-nowrap">
                     Pixel Scale: {pixelSize}x
                   </label>
                   <input
@@ -310,73 +312,61 @@ Tips:
                     value={pixelSize}
                     onChange={e => handlePixelSizeChange(Number(e.target.value))}
                     disabled={processing || !uploadedFile}
-                    className="w-full"
+                    className="flex-1"
                   />
-                  <p className="text-xs text-gray-600 mt-2">
-                    Higher values = coarser pixelation (fewer shapes)
-                  </p>
                 </div>
               ) : (
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label htmlFor="exactWidth" className="block text-sm font-medium mb-2">
-                      Width
-                    </label>
-                    <input
-                      id="exactWidth"
-                      type="number"
-                      min="1"
-                      max="200"
-                      value={exactWidth}
-                      onChange={e => handleExactSizeChange(Number(e.target.value), exactHeight)}
-                      disabled={processing || !uploadedFile}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label htmlFor="exactHeight" className="block text-sm font-medium mb-2">
-                      Height
-                    </label>
-                    <input
-                      id="exactHeight"
-                      type="number"
-                      min="1"
-                      max="200"
-                      value={exactHeight}
-                      onChange={e => handleExactSizeChange(exactWidth, Number(e.target.value))}
-                      disabled={processing || !uploadedFile}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                    />
-                  </div>
+                <div className="flex gap-2 items-center">
+                  <label htmlFor="exactWidth" className="text-sm font-medium">W:</label>
+                  <input
+                    id="exactWidth"
+                    type="number"
+                    min="1"
+                    max="200"
+                    value={exactWidth}
+                    onChange={e => handleExactSizeChange(Number(e.target.value), exactHeight)}
+                    disabled={processing || !uploadedFile}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
+                  <label htmlFor="exactHeight" className="text-sm font-medium">H:</label>
+                  <input
+                    id="exactHeight"
+                    type="number"
+                    min="1"
+                    max="200"
+                    value={exactHeight}
+                    onChange={e => handleExactSizeChange(exactWidth, Number(e.target.value))}
+                    disabled={processing || !uploadedFile}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                  />
                 </div>
               )}
+            </div>
 
-              <div>
-                <label htmlFor="colorPreset" className="block text-sm font-medium mb-2">
-                  Color Preset
+            {/* Row 2: Color Controls */}
+            <div className="flex gap-4 items-center">
+              <div className="flex-1 flex items-center gap-2">
+                <label htmlFor="colorPreset" className="text-sm font-medium whitespace-nowrap">
+                  Preset:
                 </label>
                 <select
                   id="colorPreset"
                   value={selectedPreset}
                   onChange={e => handlePresetChange(e.target.value)}
                   disabled={processing || !uploadedFile}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
+                  className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100"
                 >
                   {COLOR_PRESETS.map(preset => (
                     <option key={preset.name} value={preset.name}>
-                      {preset.name} {preset.description && `— ${preset.description}`}
+                      {preset.name}
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-600 mt-2">
-                  Snap colors to retro palettes
-                </p>
               </div>
 
-              <div>
-                <label htmlFor="paletteSize" className="block text-sm font-medium mb-2">
+              <div className="flex-1 flex items-center gap-2">
+                <label htmlFor="paletteSize" className="text-sm font-medium whitespace-nowrap">
                   Max Colors: {paletteSize}
-                  {selectedPreset !== 'None' && <span className="text-xs text-gray-500 ml-2">(disabled - using preset)</span>}
                 </label>
                 <input
                   id="paletteSize"
@@ -386,58 +376,32 @@ Tips:
                   value={paletteSize}
                   onChange={e => handlePaletteSizeChange(Number(e.target.value))}
                   disabled={processing || !uploadedFile || selectedPreset !== 'None'}
-                  className="w-full"
+                  className="flex-1"
                 />
-                <p className="text-xs text-gray-600 mt-2">
-                  Limits color palette using k-means clustering
-                </p>
               </div>
 
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={useDithering}
-                    onChange={e => handleDitheringChange(e.target.checked)}
-                    disabled={processing || !uploadedFile || (selectedPreset === 'None' && paletteSize >= 64)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">Enable Dithering</span>
-                </label>
-                <p className="text-xs text-gray-600 mt-1 ml-6">
-                  Floyd-Steinberg dithering for smoother color transitions
-                </p>
-              </div>
+              <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={useDithering}
+                  onChange={e => handleDitheringChange(e.target.checked)}
+                  disabled={processing || !uploadedFile || (selectedPreset === 'None' && paletteSize >= 64)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm font-medium">Dithering</span>
+              </label>
             </div>
-
-            {pixelGrid && (
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <ColorFilter
-                  colors={pixelGrid.uniqueColors}
-                  selectedColors={selectedColors}
-                  onColorToggle={handleColorToggle}
-                  onSelectAll={handleSelectAll}
-                  onDeselectAll={handleDeselectAll}
-                />
-              </div>
-            )}
           </div>
+        </div>
 
-          {/* Right Column: Preview and Export */}
-          <div className="flex flex-col gap-8">
+        {/* Main Content Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Column: Size Mode, Export, Color Filter */}
+          <div className="lg:col-span-1 flex flex-col gap-8">
             {pixelGrid && (
               <>
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <PixelPreview
-                    pixelGrid={pixelGrid}
-                    selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
-                    originalImage={originalImageUrl || undefined}
-                  />
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold">Export</h3>
-                  
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <h3 className="text-sm font-semibold mb-3">Export</h3>
                   <SvgDownload
                     pixelGrid={pixelGrid}
                     selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
@@ -445,8 +409,7 @@ Tips:
                     groupByColor={groupByColor}
                     onGroupByColorChange={setGroupByColor}
                   />
-
-                  <div className="relative">
+                  <div className="relative my-4">
                     <div className="absolute inset-0 flex items-center">
                       <div className="w-full border-t border-gray-300"></div>
                     </div>
@@ -454,13 +417,35 @@ Tips:
                       <span className="px-2 bg-white text-gray-500">or</span>
                     </div>
                   </div>
-
                   <FigmaExport
                     onExport={handleExport}
                     disabled={processing || selectedColors.length === 0}
                   />
                 </div>
+
+                <div className="bg-white p-4 rounded-lg shadow-md">
+                  <ColorFilter
+                    colors={pixelGrid.uniqueColors}
+                    selectedColors={selectedColors}
+                    onColorToggle={handleColorToggle}
+                    onSelectAll={handleSelectAll}
+                    onDeselectAll={handleDeselectAll}
+                  />
+                </div>
               </>
+            )}
+          </div>
+
+          {/* Right Column: Preview */}
+          <div className="lg:col-span-3">
+            {pixelGrid && (
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <PixelPreview
+                  pixelGrid={pixelGrid}
+                  selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
+                  originalImage={originalImageUrl || undefined}
+                />
+              </div>
             )}
 
             {!pixelGrid && !processing && (
