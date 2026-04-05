@@ -296,6 +296,8 @@ Tips:
           <div className="lg:col-span-1 flex flex-col gap-8">
 
             <div className="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
+              <h3 className="text-lg font-semibold">Options</h3>
+              
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Size Mode
