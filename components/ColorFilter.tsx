@@ -20,6 +20,16 @@ export default function ColorFilter({
   // Debug: log colors to console
   console.log('ColorFilter rendering with colors:', colors.slice(0, 10));
 
+  // Calculate grid columns and swatch size based on color count
+  const getGridConfig = () => {
+    if (colors.length <= 8) return { cols: 4, size: 'w-12 h-12', minSize: '48px' };
+    if (colors.length <= 16) return { cols: 6, size: 'w-10 h-10', minSize: '40px' };
+    if (colors.length <= 32) return { cols: 8, size: 'w-8 h-8', minSize: '32px' };
+    return { cols: 10, size: 'w-6 h-6', minSize: '24px' };
+  };
+
+  const { cols, size, minSize } = getGridConfig();
+
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-lg font-semibold">Color Filter</h3>
@@ -43,7 +53,10 @@ export default function ColorFilter({
         {selectedColors.length} of {colors.length} colors selected
       </p>
 
-      <div className="grid grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-lg bg-white">
+      <div 
+        className={`grid gap-2 max-h-64 overflow-y-auto p-2 border border-gray-300 rounded-lg bg-white`}
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      >
         {colors.map(color => {
           const isSelected = selectedColors.includes(color);
           
@@ -62,14 +75,14 @@ export default function ColorFilter({
                 onClick={() => onColorToggle(color)}
                 onDoubleClick={handleCopyHex}
                 className={`
-                  w-12 h-12 rounded border-2 transition-all
+                  ${size} rounded border-2 transition-all
                   ${isSelected ? 'border-blue-600 scale-110 shadow-lg' : 'border-gray-300'}
                   hover:scale-110
                 `}
                 style={{ 
                   backgroundColor: color,
-                  minWidth: '48px',
-                  minHeight: '48px',
+                  minWidth: minSize,
+                  minHeight: minSize,
                 }}
                 title={`${color} ${isSelected ? '(selected)' : ''} - Double-click to copy`}
                 aria-label={`Color ${color}`}
