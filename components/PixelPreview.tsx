@@ -6,60 +6,97 @@ import { useEffect, useRef, useState } from 'react';
 interface PixelPreviewProps {
   pixelGrid: PixelGrid;
   selectedColors?: string[];
-  originalImage?: string; // Data URL of original image
+  originalImage?: string;
+}
+
+/**
+ * Compute the preview block size (px per pixel grid cell) so the canvas
+ * never exceeds ~600px on its longest side. Small grids get large blocks
+ * so individual pixels are visible; large grids get 1px blocks (1:1).
+ *
+ *   grid 2×2   → 300px blocks → 600×600 canvas
+ *   grid 64×64 →   9px blocks → 576×576 canvas
+ *   grid 500×500→  1px block  → 500×500 canvas
+ */
+function previewBlockSize(gridW: number, gridH: number): number {
+  return Math.max(1, Math.floor(600 / Math.max(gridW, gridH)));
+}
+
+/**
+ * Parse '#rrggbb' into [r, g, b] without string allocation per pixel.
+ * Uses a pre-computed lookup for the two hex digits.
+ */
+function hexToRgbFast(hex: string): [number, number, number] {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
 }
 
 export default function PixelPreview({ pixelGrid, selectedColors, originalImage }: PixelPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [showGrid, setShowGrid] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [showGrid, setShowGrid]           = useState(false);
+  const [zoom, setZoom]                   = useState(1);
   const [showComparison, setShowComparison] = useState(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d')!;
-    const pixelSize = 10; // 10px per pixel for preview
+    const { width, height, pixels } = pixelGrid;
+    const blockPx = previewBlockSize(width, height);
 
-    canvas.width = pixelGrid.width * pixelSize;
-    canvas.height = pixelGrid.height * pixelSize;
+    const canvasW = width  * blockPx;
+    const canvasH = height * blockPx;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.width  = canvasW;
+    canvas.height = canvasH;
 
-    // Draw pixels
-    pixelGrid.pixels.forEach(pixel => {
-      // Skip if color filtering is active and this color isn't selected
-      if (selectedColors && !selectedColors.includes(pixel.color)) {
-        return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: false })!;
+
+    // ── Build pixel buffer in one pass ──────────────────────────────────────
+    // Writing directly into a Uint8ClampedArray avoids N fillStyle assignments
+    // and N GPU draw calls — all pixels are flushed in a single putImageData.
+    const buf = new Uint8ClampedArray(canvasW * canvasH * 4); // zeroed = transparent
+
+    const colorFilter = selectedColors ? new Set(selectedColors) : null;
+
+    for (const pixel of pixels) {
+      if (colorFilter && !colorFilter.has(pixel.color)) continue;
+
+      const [r, g, b] = hexToRgbFast(pixel.color);
+
+      // Fill the blockPx × blockPx block for this pixel
+      const baseX = pixel.x * blockPx;
+      const baseY = pixel.y * blockPx;
+
+      for (let dy = 0; dy < blockPx; dy++) {
+        const rowStart = ((baseY + dy) * canvasW + baseX) * 4;
+        for (let dx = 0; dx < blockPx; dx++) {
+          const i = rowStart + dx * 4;
+          buf[i]     = r;
+          buf[i + 1] = g;
+          buf[i + 2] = b;
+          buf[i + 3] = 255;
+        }
       }
+    }
 
-      ctx.fillStyle = pixel.color;
-      ctx.fillRect(
-        pixel.x * pixelSize,
-        pixel.y * pixelSize,
-        pixelSize,
-        pixelSize
-      );
-    });
+    ctx.putImageData(new ImageData(buf, canvasW, canvasH), 0, 0);
 
-    // Draw grid overlay if enabled
-    if (showGrid) {
+    // ── Grid overlay (drawn on top via strokeRect) ───────────────────────────
+    if (showGrid && blockPx > 1) {
       ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-      ctx.lineWidth = 1;
-      
-      for (let x = 0; x <= pixelGrid.width; x++) {
+      ctx.lineWidth   = 1;
+
+      for (let x = 0; x <= width; x++) {
         ctx.beginPath();
-        ctx.moveTo(x * pixelSize, 0);
-        ctx.lineTo(x * pixelSize, canvas.height);
+        ctx.moveTo(x * blockPx, 0);
+        ctx.lineTo(x * blockPx, canvasH);
         ctx.stroke();
       }
-      
-      for (let y = 0; y <= pixelGrid.height; y++) {
+      for (let y = 0; y <= height; y++) {
         ctx.beginPath();
-        ctx.moveTo(0, y * pixelSize);
-        ctx.lineTo(canvas.width, y * pixelSize);
+        ctx.moveTo(0, y * blockPx);
+        ctx.lineTo(canvasW, y * blockPx);
         ctx.stroke();
       }
     }
@@ -123,7 +160,7 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
             </div>
           </div>
         )}
-        
+
         <div className={`border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
           {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
           <div className="overflow-auto" style={{ maxHeight: showComparison ? '500px' : '700px' }}>

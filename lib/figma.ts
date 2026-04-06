@@ -6,6 +6,7 @@ export interface FigmaExportOptions {
   pixelGrid: PixelGrid;
   selectedColors?: string[]; // if provided, only export these colors
   frameName?: string;
+  exportPixelSize?: number; // size of each pixel rectangle in Figma (default: 10)
 }
 
 interface FigmaNode {
@@ -31,6 +32,7 @@ export async function exportToFigma(
     pixelGrid,
     selectedColors,
     frameName = 'Pixel Art',
+    exportPixelSize = 10,
   } = options;
 
   // Filter pixels by selected colors if provided
@@ -46,10 +48,10 @@ export async function exportToFigma(
   const rectangles: FigmaNode[] = pixels.map(pixel => ({
     type: 'RECTANGLE',
     name: `Pixel ${pixel.x},${pixel.y}`,
-    x: pixel.x * 10, // 10px per pixel in Figma
-    y: pixel.y * 10,
-    width: 10,
-    height: 10,
+    x: pixel.x * exportPixelSize,
+    y: pixel.y * exportPixelSize,
+    width: exportPixelSize,
+    height: exportPixelSize,
     fills: [
       {
         type: 'SOLID',
@@ -63,8 +65,8 @@ export async function exportToFigma(
     name: frameName,
     x: 0,
     y: 0,
-    width: pixelGrid.width * 10,
-    height: pixelGrid.height * 10,
+    width: pixelGrid.width * exportPixelSize,
+    height: pixelGrid.height * exportPixelSize,
     children: rectangles,
   };
 

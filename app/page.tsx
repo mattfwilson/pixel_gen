@@ -7,6 +7,7 @@ import PixelPreview from '@/components/PixelPreview';
 import ColorFilter from '@/components/ColorFilter';
 import FigmaExport from '@/components/FigmaExport';
 import SvgDownload from '@/components/SvgDownload';
+import AsepriteExport from '@/components/AsepriteExport';
 import { pixelateImage, PixelGrid } from '@/lib/pixelate';
 import { exportToFigma } from '@/lib/figma';
 import { COLOR_PRESETS } from '@/lib/colorPresets';
@@ -22,9 +23,19 @@ export default function Home() {
   const [exactHeight, setExactHeight] = useState(32);
   const [useDithering, setUseDithering] = useState(false);
   const [groupByColor, setGroupByColor] = useState(false);
+  const [exportPixelSize, setExportPixelSize] = useState(8);
   const [processing, setProcessing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
+  const [uploadedImageDimensions, setUploadedImageDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  // Max pixel scale: the largest scale that still produces at least 2 output pixels in the
+  // shortest dimension. At max+1 the output collapses to 1×N or N×1 — a solid colour with
+  // no visible pixelation. Formula: floor(min(w, h) / 2).
+  // e.g. 64×64 image → max=32 (output 2×2); at 33 → 1×1, nothing to see.
+  const maxPixelSize = uploadedImageDimensions
+    ? Math.floor(Math.min(uploadedImageDimensions.width, uploadedImageDimensions.height) / 2)
+    : 50;
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const processImage = async (
@@ -42,7 +53,9 @@ export default function Home() {
       const grid = await pixelateImage(file, {
         ...(mode === 'exact' && width && height 
           ? { exactWidth: width, exactHeight: height }
-          : { pixelSize: newPixelSize, maxDimension: 100 }
+          : { pixelSize: newPixelSize, maxDimension: uploadedImageDimensions
+                ? Math.max(uploadedImageDimensions.width, uploadedImageDimensions.height)
+                : 200 }
         ),
         paletteSize: presetColors.length > 0 ? undefined : newPaletteSize, // Disable quantization when using preset
         colorPreset: presetColors.length > 0 ? presetColors : undefined,
@@ -77,15 +90,34 @@ export default function Home() {
 
   const handleImageSelect = async (file: File) => {
     setUploadedFile(file);
-    
+
+    // Read natural dimensions so we can compute the max meaningful pixel scale
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    let clampedPixelSize = pixelSize;
+    await new Promise<void>(resolve => {
+      img.onload = () => {
+        const dims = { width: img.naturalWidth, height: img.naturalHeight };
+        setUploadedImageDimensions(dims);
+        // Clamp current pixelSize if it exceeds the new image's max scale
+        const newMax = Math.min(dims.width, dims.height);
+        clampedPixelSize = Math.min(pixelSize, newMax);
+        setPixelSize(clampedPixelSize);
+        resolve();
+      };
+      img.onerror = () => resolve(); // don't block on error
+      img.src = url;
+    });
+    URL.revokeObjectURL(url);
+
     // Create data URL for original image comparison
     const reader = new FileReader();
     reader.onload = (e) => {
       setOriginalImageUrl(e.target?.result as string);
     };
     reader.readAsDataURL(file);
-    
-    await processImage(file, pixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
+
+    await processImage(file, clampedPixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
   };
 
   const handleSampleSelect = async (url: string) => {
@@ -123,7 +155,7 @@ export default function Home() {
       if (sizeMode === 'scale' && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (e.key === 'ArrowUp') {
           e.preventDefault();
-          handlePixelSizeChange(Math.min(50, pixelSize + 1));
+          handlePixelSizeChange(Math.min(maxPixelSize, pixelSize + 1));
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
           handlePixelSizeChange(Math.max(1, pixelSize - 1));
@@ -138,7 +170,7 @@ export default function Home() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('paste', handlePaste as any);
     };
-  }, [uploadedFile, pixelSize, sizeMode]);
+  }, [uploadedFile, pixelSize, sizeMode, maxPixelSize]);
 
 
   const handleDitheringChange = (enabled: boolean) => {
@@ -212,6 +244,7 @@ export default function Home() {
       fileKey,
       pixelGrid,
       selectedColors: selectedColors.length > 0 ? selectedColors : undefined,
+      exportPixelSize,
     });
 
     if (!result.success) {
@@ -337,14 +370,14 @@ Tips:
                     id="pixelSize"
                     type="range"
                     min="1"
-                    max="50"
+                    max={maxPixelSize}
                     value={pixelSize}
                     onChange={e => handlePixelSizeChange(Number(e.target.value))}
                     disabled={processing || !uploadedFile}
                     className="w-full"
                   />
                   <p className="text-xs text-gray-600 mt-2">
-                    Higher values = coarser pixelation (fewer shapes)
+                    Lower = more detail · Higher = coarser pixelation
                   </p>
                 </div>
               ) : (
@@ -465,13 +498,49 @@ Tips:
             {pixelGrid && (
               <div className="bg-white p-4 md:p-6 rounded-lg shadow-md flex flex-col gap-4">
                 <h3 className="text-base md:text-lg font-semibold">Export</h3>
-                
+
+                {/* Pixel size control — shared across SVG and Figma exports */}
+                <div>
+                  <label htmlFor="exportPixelSize" className="block text-sm font-medium mb-2">
+                    Pixel Size: {exportPixelSize}px
+                  </label>
+                  <input
+                    id="exportPixelSize"
+                    type="range"
+                    min="1"
+                    max="32"
+                    value={exportPixelSize}
+                    onChange={e => setExportPixelSize(Number(e.target.value))}
+                    disabled={processing}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Size of each pixel in SVG and Figma exports
+                  </p>
+                </div>
+
                 <SvgDownload
                   pixelGrid={pixelGrid}
                   selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
                   disabled={processing || selectedColors.length === 0}
                   groupByColor={groupByColor}
                   onGroupByColorChange={setGroupByColor}
+                  exportPixelSize={exportPixelSize}
+                />
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">or</span>
+                  </div>
+                </div>
+
+                <AsepriteExport
+                  pixelGrid={pixelGrid}
+                  selectedColors={selectedColors.length > 0 ? selectedColors : undefined}
+                  disabled={processing || selectedColors.length === 0}
                 />
 
                 <div className="relative">

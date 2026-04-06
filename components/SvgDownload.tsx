@@ -9,6 +9,7 @@ interface SvgDownloadProps {
   disabled?: boolean;
   groupByColor?: boolean;
   onGroupByColorChange?: (grouped: boolean) => void;
+  exportPixelSize?: number;
 }
 
 export default function SvgDownload({ 
@@ -16,13 +17,14 @@ export default function SvgDownload({
   selectedColors, 
   disabled, 
   groupByColor = false,
-  onGroupByColorChange 
+  onGroupByColorChange,
+  exportPixelSize = 10,
 }: SvgDownloadProps) {
   const handleDownload = () => {
     const svg = generateSvg({
       pixelGrid,
       selectedColors: selectedColors && selectedColors.length > 0 ? selectedColors : undefined,
-      pixelSize: 10,
+      pixelSize: exportPixelSize,
       groupByColor,
     });
     downloadSvg(svg, 'pixel-art.svg');
