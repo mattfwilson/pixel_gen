@@ -106,7 +106,10 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h3 className="text-base md:text-lg font-semibold">Preview</h3>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500">
+            {pixelGrid.width} × {pixelGrid.height} &middot; {pixelGrid.pixels.length} shapes
+          </span>
           <button
             onClick={() => setShowGrid(!showGrid)}
             className={`px-3 py-1 text-xs rounded transition-colors ${
@@ -142,11 +145,28 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
         <span className="text-sm text-gray-600">{zoom}×</span>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col gap-4">
+        {/* Pixelated preview — always on top */}
+        <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50">
+          {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
+          <div className="overflow-auto flex justify-center" style={{ maxHeight: '600px' }}>
+            <canvas
+              ref={canvasRef}
+              className="max-w-full h-auto"
+              style={{
+                imageRendering: 'pixelated',
+                transform: `scale(${zoom})`,
+                transformOrigin: 'top center',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Original image — below, only when comparison is on */}
         {showComparison && originalImage && (
-          <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 flex-1 overflow-auto">
+          <div className="border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50">
             <p className="text-xs text-gray-600 mb-2 text-center">Original</p>
-            <div className="overflow-auto" style={{ maxHeight: '500px' }}>
+            <div className="overflow-auto flex justify-center" style={{ maxHeight: '600px' }}>
               <img
                 src={originalImage}
                 alt="Original"
@@ -154,32 +174,15 @@ export default function PixelPreview({ pixelGrid, selectedColors, originalImage 
                 style={{
                   imageRendering: 'auto',
                   transform: `scale(${zoom})`,
-                  transformOrigin: 'top left',
+                  transformOrigin: 'top center',
                 }}
               />
             </div>
           </div>
         )}
-
-        <div className={`border border-gray-300 rounded-lg p-3 md:p-4 bg-gray-50 ${showComparison ? 'flex-1' : 'inline-block'}`}>
-          {showComparison && <p className="text-xs text-gray-600 mb-2 text-center">Pixelated</p>}
-          <div className="overflow-auto" style={{ maxHeight: showComparison ? '500px' : '700px' }}>
-            <canvas
-              ref={canvasRef}
-              className="max-w-full h-auto"
-              style={{
-                imageRendering: 'pixelated',
-                transform: `scale(${zoom})`,
-                transformOrigin: 'top left',
-              }}
-            />
-          </div>
-        </div>
       </div>
 
-      <p className="text-sm text-gray-600">
-        {pixelGrid.width} × {pixelGrid.height} pixels ({pixelGrid.pixels.length} shapes)
-      </p>
+
     </div>
   );
 }

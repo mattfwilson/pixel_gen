@@ -11,11 +11,20 @@ import AsepriteExport from '@/components/AsepriteExport';
 import { pixelateImage, PixelGrid } from '@/lib/pixelate';
 import { exportToFigma } from '@/lib/figma';
 import { COLOR_PRESETS } from '@/lib/colorPresets';
+import {
+  SLIDER_STEPS,
+  sliderValToPixelSize,
+  pixelSizeToSliderVal,
+  outputDimensions,
+} from '@/lib/pixelScaleUtils';
 
 export default function Home() {
   const [pixelGrid, setPixelGrid] = useState<PixelGrid | null>(null);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [pixelSize, setPixelSize] = useState(10);
+  // sliderVal is the raw range-input integer [0..SLIDER_STEPS].
+  // The actual pixelSize is derived logarithmically so the slider feels
+  // evenly distributed — each step is a ~constant ratio change in output size.
+  const [sliderVal, setSliderVal] = useState(SLIDER_STEPS / 2); // start mid-range
   const [paletteSize, setPaletteSize] = useState(16);
   const [selectedPreset, setSelectedPreset] = useState('None');
   const [sizeMode, setSizeMode] = useState<'scale' | 'exact'>('scale');
@@ -29,13 +38,16 @@ export default function Home() {
   const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null);
   const [uploadedImageDimensions, setUploadedImageDimensions] = useState<{ width: number; height: number } | null>(null);
 
-  // Max pixel scale: the largest scale that still produces at least 2 output pixels in the
-  // shortest dimension. At max+1 the output collapses to 1×N or N×1 — a solid colour with
-  // no visible pixelation. Formula: floor(min(w, h) / 2).
-  // e.g. 64×64 image → max=32 (output 2×2); at 33 → 1×1, nothing to see.
-  const maxPixelSize = uploadedImageDimensions
-    ? Math.floor(Math.min(uploadedImageDimensions.width, uploadedImageDimensions.height) / 2)
-    : 50;
+  // Shortest dimension of the uploaded image — drives the log mapping.
+  const imgMin = uploadedImageDimensions
+    ? Math.min(uploadedImageDimensions.width, uploadedImageDimensions.height)
+    : 0;
+
+  // Derived pixelSize from the log-mapped slider value.
+  // Falls back to 8 (reasonable default) before any image is loaded.
+  const pixelSize = imgMin > 0
+    ? sliderValToPixelSize(sliderVal, imgMin)
+    : 8;
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   const processImage = async (
@@ -94,18 +106,18 @@ export default function Home() {
     // Read natural dimensions so we can compute the max meaningful pixel scale
     const url = URL.createObjectURL(file);
     const img = new Image();
-    let clampedPixelSize = pixelSize;
+    let initialPixelSize = 8; // fallback
     await new Promise<void>(resolve => {
       img.onload = () => {
         const dims = { width: img.naturalWidth, height: img.naturalHeight };
         setUploadedImageDimensions(dims);
-        // Clamp current pixelSize if it exceeds the new image's max scale
-        const newMax = Math.min(dims.width, dims.height);
-        clampedPixelSize = Math.min(pixelSize, newMax);
-        setPixelSize(clampedPixelSize);
+        // Convert the current slider position to a pixelSize for this image.
+        // This keeps the thumb at the same relative position after a new image loads.
+        const newImgMin = Math.min(dims.width, dims.height);
+        initialPixelSize = sliderValToPixelSize(sliderVal, newImgMin);
         resolve();
       };
-      img.onerror = () => resolve(); // don't block on error
+      img.onerror = () => resolve();
       img.src = url;
     });
     URL.revokeObjectURL(url);
@@ -117,7 +129,7 @@ export default function Home() {
     };
     reader.readAsDataURL(file);
 
-    await processImage(file, clampedPixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
+    await processImage(file, initialPixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
   };
 
   const handleSampleSelect = async (url: string) => {
@@ -151,14 +163,15 @@ export default function Home() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!uploadedFile) return;
 
-      // Arrow keys to adjust pixel scale
+      // Arrow keys to adjust pixel scale (move slider by one even step)
       if (sizeMode === 'scale' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const step = Math.round(SLIDER_STEPS / 40); // 40 arrow-key steps across full range
         if (e.key === 'ArrowUp') {
           e.preventDefault();
-          handlePixelSizeChange(Math.min(maxPixelSize, pixelSize + 1));
+          handleSliderChange(Math.min(SLIDER_STEPS, sliderVal + step));
         } else if (e.key === 'ArrowDown') {
           e.preventDefault();
-          handlePixelSizeChange(Math.max(1, pixelSize - 1));
+          handleSliderChange(Math.max(0, sliderVal - step));
         }
       }
     };
@@ -170,7 +183,7 @@ export default function Home() {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('paste', handlePaste as any);
     };
-  }, [uploadedFile, pixelSize, sizeMode, maxPixelSize]);
+  }, [uploadedFile, sliderVal, sizeMode]);
 
 
   const handleDitheringChange = (enabled: boolean) => {
@@ -180,10 +193,11 @@ export default function Home() {
     }
   };
 
-  const handlePixelSizeChange = (newSize: number) => {
-    setPixelSize(newSize);
-    if (uploadedFile) {
-      debouncedProcessImage(uploadedFile, newSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
+  const handleSliderChange = (newVal: number) => {
+    setSliderVal(newVal);
+    if (uploadedFile && imgMin > 0) {
+      const newPixelSize = sliderValToPixelSize(newVal, imgMin);
+      debouncedProcessImage(uploadedFile, newPixelSize, paletteSize, selectedPreset, sizeMode, exactWidth, exactHeight);
     }
   };
 
@@ -364,15 +378,23 @@ Tips:
               {sizeMode === 'scale' ? (
                 <div>
                   <label htmlFor="pixelSize" className="block text-sm font-medium mb-2">
-                    Pixel Scale: {pixelSize}x
+                    Pixel Scale
+                    {uploadedImageDimensions && (
+                      <span className="ml-2 font-normal text-gray-500">
+                        {(() => {
+                          const { w, h } = outputDimensions(pixelSize, uploadedImageDimensions.width, uploadedImageDimensions.height);
+                          return `${w} × ${h}`;
+                        })()}
+                      </span>
+                    )}
                   </label>
                   <input
                     id="pixelSize"
                     type="range"
-                    min="1"
-                    max={maxPixelSize}
-                    value={pixelSize}
-                    onChange={e => handlePixelSizeChange(Number(e.target.value))}
+                    min="0"
+                    max={SLIDER_STEPS}
+                    value={sliderVal}
+                    onChange={e => handleSliderChange(Number(e.target.value))}
                     disabled={processing || !uploadedFile}
                     className="w-full"
                   />
